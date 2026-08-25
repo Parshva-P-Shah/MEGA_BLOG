@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  frontend:
+    build:
+      context: .
+    ports:
+      - "5173:5173"
+    depends_on:
+      - appwrite_db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - blog-app
+
+  appwrite_db:
+    container_name: appwrite
+    image: appwrite/appwrite:${APPWRITE_VERSION:-latest}
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - ".env"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/v1/health/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - blog-app
+    volumes:
+      - appwrite_data:/storage
+networks:
+  blog-app:
+    driver: bridge
+volumes:
+  appwrite_data:
